@@ -1,0 +1,31 @@
+{
+  "name": "voting-s",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Aishwarya-kk/Major-Project-Backend.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Aishwarya-kk/Major-Project-Backend/issues"
+  },
+  "homepage": "https://github.com/Aishwarya-kk/Major-Project-Backend#readme",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.9.1",
+    "nodemailer": "^9.0.5"
+  }
+}
