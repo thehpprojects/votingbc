@@ -42,10 +42,10 @@ export default function Navbar() {
             <ChakraEmblem className="h-10 w-10 shrink-0 text-brand-700 dark:text-brand-400" />
             <span className="hidden flex-col leading-tight sm:flex">
               <span className="font-hindi text-[13px] font-bold text-slate-900 dark:text-white">
-                राष्ट्रीय निर्वाचन आयोग
+                VoteChain
               </span>
               <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                National Election Commission
+                DECENTRALIZED VOTING PLATFORM
               </span>
             </span>
           </span>
@@ -103,7 +103,11 @@ export default function Navbar() {
             onClick={() => setOpen((o) => !o)}
             aria-label="Toggle menu"
           >
-            {open ? <FaTimes className="h-5 w-5" /> : <FaBars className="h-5 w-5" />}
+            {open ? (
+              <FaTimes className="h-5 w-5" />
+            ) : (
+              <FaBars className="h-5 w-5" />
+            )}
           </button>
         </div>
       </div>

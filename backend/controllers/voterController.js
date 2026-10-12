@@ -19,23 +19,40 @@ const registerVoter = async (req, res) => {
         message: "Please provide all required fields.",
       });
     }
+    const normalizedVoterId = voterId.trim().toUpperCase();
+    const normalizedEmail = email ? email.trim().toLowerCase() : "";
 
-    const voterExists = await Voter.findOne({ voterId });
+    const voterIdExists = await Voter.findOne({
+      voterId: normalizedVoterId,
+    });
 
-    if (voterExists) {
+    if (voterIdExists) {
       return res.status(400).json({
         success: false,
         message: "Voter ID already registered.",
       });
     }
 
+    if (normalizedEmail) {
+      const emailExists = await Voter.findOne({
+        email: normalizedEmail,
+      });
+
+      if (emailExists) {
+        return res.status(400).json({
+          success: false,
+          message: "Email is already registered with another Voter ID.",
+        });
+      }
+    }
+
     const hashedVoterId = hashVoterId(voterId);
 
     const voter = await Voter.create({
       name,
-      voterId,
-      hashedVoterId,
-      email,
+      voterId: normalizedVoterId,
+      hashedVoterId: hashVoterId(normalizedVoterId),
+      email: normalizedEmail,
       phone,
       isVerified: false,
       hasVoted: false,
@@ -64,7 +81,6 @@ const registerVoter = async (req, res) => {
  * @desc Get Verification Status
  * @route GET /api/voter/status/:id
  */
-
 const getVerificationStatus = async (req, res) => {
   try {
     const voter = await Voter.findById(req.params.id);
@@ -79,6 +95,16 @@ const getVerificationStatus = async (req, res) => {
     res.status(200).json({
       success: true,
       verified: voter.isVerified,
+
+      // Voter details for Admin lookup
+      voter: {
+        registrationId: voter._id,
+        name: voter.name,
+        voterId: voter.voterId,
+        email: voter.email,
+        phone: voter.phone,
+        createdAt: voter.createdAt,
+      },
     });
   } catch (error) {
     res.status(500).json({
@@ -87,7 +113,6 @@ const getVerificationStatus = async (req, res) => {
     });
   }
 };
-
 /**
  * @desc Check Voting Status
  * @route GET /api/voter/voted/:id

@@ -5,7 +5,11 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useWallet } from "../../hooks/useWallet";
-import { startElection, endElection, withTxToast } from "../../services/contract";
+import {
+  startElection,
+  endElection,
+  withTxToast,
+} from "../../services/contract";
 import { ELECTION_STATE } from "../../utils/constants";
 import { formatTimestamp, formatNumber } from "../../utils/format";
 import Button from "../../components/common/Button";
@@ -65,14 +69,24 @@ export default function AdminElection() {
       icon: FaPlus,
       title: "Registration",
       desc: "Add all candidates with their IPFS metadata CIDs.",
-      state: state === ELECTION_STATE.REGISTRATION ? "current" : state > ELECTION_STATE.REGISTRATION ? "done" : "pending",
+      state:
+        state === ELECTION_STATE.REGISTRATION
+          ? "current"
+          : state > ELECTION_STATE.REGISTRATION
+            ? "done"
+            : "pending",
       count: `${formatNumber(candidates.length)} candidates`,
     },
     {
       icon: FaVoteYea,
       title: "Active",
       desc: "Voting opens. Each wallet can vote exactly once.",
-      state: state === ELECTION_STATE.ACTIVE ? "current" : state > ELECTION_STATE.ACTIVE ? "done" : "pending",
+      state:
+        state === ELECTION_STATE.ACTIVE
+          ? "current"
+          : state > ELECTION_STATE.ACTIVE
+            ? "done"
+            : "pending",
       count: election?.startedAt
         ? `Started ${formatTimestamp(election.startedAt)}`
         : "Not started yet",
@@ -113,7 +127,9 @@ export default function AdminElection() {
       {/* Header */}
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">Election Control</h1>
+          <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">
+            Election Control
+          </h1>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             Create, start and end the election — all executed on the blockchain.
           </p>
@@ -128,7 +144,8 @@ export default function AdminElection() {
           <div>
             <p className="font-bold">Not the contract owner</p>
             <p className="mt-0.5 text-amber-700 dark:text-amber-400">
-              Lifecycle actions require the deployer wallet. Connect it to proceed.
+              Lifecycle actions require the deployer wallet. Connect it to
+              proceed.
             </p>
           </div>
         </div>
@@ -137,8 +154,18 @@ export default function AdminElection() {
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Timeline */}
         <div className="card rounded-2xl p-6">
-          <h2 className="mb-1 text-base font-bold text-slate-900 dark:text-white">Election Lifecycle</h2>
-          <Badge tone={election?.isActive ? "success" : state === ELECTION_STATE.ENDED ? "danger" : "info"}>
+          <h2 className="mb-1 text-base font-bold text-slate-900 dark:text-white">
+            Election Lifecycle
+          </h2>
+          <Badge
+            tone={
+              election?.isActive
+                ? "success"
+                : state === ELECTION_STATE.ENDED
+                  ? "danger"
+                  : "info"
+            }
+          >
             Current: {election?.stateLabel || "Loading..."}
           </Badge>
 
@@ -150,15 +177,25 @@ export default function AdminElection() {
                   {i < steps.length - 1 && (
                     <div
                       className={`w-0.5 flex-1 ${
-                        s.state === "done" ? "bg-emerald-400" : "bg-slate-200 dark:bg-midnight-850"
+                        s.state === "done"
+                          ? "bg-emerald-400"
+                          : "bg-slate-200 dark:bg-midnight-850"
                       }`}
                     />
                   )}
                 </div>
-                <div className={`pb-8 ${s.state === "pending" ? "opacity-50" : ""}`}>
-                  <h3 className="font-bold text-slate-900 dark:text-white">{s.title}</h3>
-                  <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">{s.desc}</p>
-                  <p className="mt-1 text-xs font-semibold text-slate-400 dark:text-slate-500">{s.count}</p>
+                <div
+                  className={`pb-8 ${s.state === "pending" ? "opacity-50" : ""}`}
+                >
+                  <h3 className="font-bold text-slate-900 dark:text-white">
+                    {s.title}
+                  </h3>
+                  <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">
+                    {s.desc}
+                  </p>
+                  <p className="mt-1 text-xs font-semibold text-slate-400 dark:text-slate-500">
+                    {s.count}
+                  </p>
                 </div>
               </div>
             ))}
@@ -176,12 +213,15 @@ export default function AdminElection() {
         {/* Actions */}
         <div className="space-y-6">
           <div className="card rounded-2xl p-6">
-            <h2 className="text-base font-bold text-slate-900 dark:text-white">Actions</h2>
+            <h2 className="text-base font-bold text-slate-900 dark:text-white">
+              Actions
+            </h2>
             <div className="mt-4 space-y-3">
               {state === ELECTION_STATE.REGISTRATION && (
                 <Link to="/admin/candidates">
                   <Button variant="secondary" className="w-full" size="md">
-                    <FaPlus className="h-4 w-4" /> Add Candidates ({candidates.length})
+                    <FaPlus className="h-4 w-4" /> Add Candidates (
+                    {candidates.length})
                   </Button>
                 </Link>
               )}
@@ -189,7 +229,12 @@ export default function AdminElection() {
                 variant="success"
                 className="w-full"
                 size="lg"
-                disabled={state !== ELECTION_STATE.REGISTRATION || candidates.length === 0 || !wallet.signer || !isOwner}
+                disabled={
+                  state !== ELECTION_STATE.REGISTRATION ||
+                  candidates.length === 0 ||
+                  !wallet.signer ||
+                  !isOwner
+                }
                 onClick={() => setConfirmAction("start")}
               >
                 <FaPlay className="h-5 w-5" /> Start Election
@@ -198,49 +243,66 @@ export default function AdminElection() {
                 variant="danger"
                 className="w-full"
                 size="lg"
-                disabled={state !== ELECTION_STATE.ACTIVE || !wallet.signer || !isOwner}
+                disabled={
+                  state !== ELECTION_STATE.ACTIVE || !wallet.signer || !isOwner
+                }
                 onClick={() => setConfirmAction("end")}
               >
                 <FaStop className="h-5 w-5" /> End Election
               </Button>
             </div>
 
-            {state === ELECTION_STATE.REGISTRATION && candidates.length === 0 && (
-              <p className="mt-3 text-center text-xs text-amber-600 dark:text-amber-400">
-                Add at least one candidate before starting the election.
-              </p>
-            )}
+            {state === ELECTION_STATE.REGISTRATION &&
+              candidates.length === 0 && (
+                <p className="mt-3 text-center text-xs text-amber-600 dark:text-amber-400">
+                  Add at least one candidate before starting the election.
+                </p>
+              )}
           </div>
 
           <div className="card rounded-2xl p-6">
-            <h2 className="text-base font-bold text-slate-900 dark:text-white">Key Information</h2>
+            <h2 className="text-base font-bold text-slate-900 dark:text-white">
+              Key Information
+            </h2>
             <dl className="mt-4 space-y-3 text-sm">
               <div className="flex justify-between gap-4">
-                <dt className="text-slate-500 dark:text-slate-400">Election started</dt>
+                <dt className="text-slate-500 dark:text-slate-400">
+                  Election started
+                </dt>
                 <dd className="font-semibold text-slate-800 dark:text-slate-200">
-                  {election?.startedAt ? formatTimestamp(election.startedAt) : "—"}
+                  {election?.startedAt
+                    ? formatTimestamp(election.startedAt)
+                    : "—"}
                 </dd>
               </div>
               <div className="flex justify-between gap-4">
-                <dt className="text-slate-500 dark:text-slate-400">Election ended</dt>
+                <dt className="text-slate-500 dark:text-slate-400">
+                  Election ended
+                </dt>
                 <dd className="font-semibold text-slate-800 dark:text-slate-200">
                   {election?.endedAt ? formatTimestamp(election.endedAt) : "—"}
                 </dd>
               </div>
               <div className="flex justify-between gap-4">
-                <dt className="text-slate-500 dark:text-slate-400">Candidates</dt>
+                <dt className="text-slate-500 dark:text-slate-400">
+                  Candidates
+                </dt>
                 <dd className="font-semibold text-slate-800 dark:text-slate-200">
                   {formatNumber(election?.candidateCount ?? 0)}
                 </dd>
               </div>
               <div className="flex justify-between gap-4">
-                <dt className="text-slate-500 dark:text-slate-400">Votes cast</dt>
+                <dt className="text-slate-500 dark:text-slate-400">
+                  Votes cast
+                </dt>
                 <dd className="font-semibold text-slate-800 dark:text-slate-200">
                   {formatNumber(election?.votesCast ?? 0)}
                 </dd>
               </div>
               <div className="flex justify-between gap-4">
-                <dt className="text-slate-500 dark:text-slate-400">Contract owner</dt>
+                <dt className="text-slate-500 dark:text-slate-400">
+                  Contract owner
+                </dt>
                 <dd className="truncate font-mono text-xs text-slate-600 dark:text-slate-300">
                   {wallet.ownerAddress || "—"}
                 </dd>

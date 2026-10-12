@@ -94,7 +94,7 @@ export default function LandingPage() {
             <div className="mx-auto flex w-fit animate-float items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 backdrop-blur sm:px-4">
               <ChakraEmblem className="h-5 w-5 shrink-0 text-brand-300" />
               <p className="font-hindi text-[10px] font-semibold tracking-wide text-slate-200 sm:text-xs">
-                राष्ट्रीय निर्वाचन आयोग · National Election Commission
+                Blockchain-Based Multi-Election Voting
               </p>
             </div>
 
@@ -114,9 +114,11 @@ export default function LandingPage() {
 
             <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-slate-300 sm:text-lg">
               आपका वोट, आपकी आवाज़ — Every ballot recorded on a{" "}
-              <strong className="text-white">tamper-proof smart contract</strong>,
-              every voter verified by <strong className="text-white">OTP</strong>,
-              every result{" "}
+              <strong className="text-white">
+                tamper-proof smart contract
+              </strong>
+              , every voter verified by{" "}
+              <strong className="text-white">OTP</strong>, every result{" "}
               <strong className="text-white">open for public audit</strong>.
             </p>
 
@@ -223,8 +225,8 @@ export default function LandingPage() {
           </h2>
           <div className="mx-auto mt-4 h-1 w-24 rounded-full bg-gradient-to-r from-brand-600 to-violet-600" />
           <p className="mx-auto mt-4 max-w-xl text-slate-500 dark:text-slate-400">
-            Digital convenience with constitutional-grade integrity. These are the
-            pillars on which the portal operates.
+            Digital convenience with constitutional-grade integrity. These are
+            the pillars on which the portal operates.
           </p>
         </div>
 

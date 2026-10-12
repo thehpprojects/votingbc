@@ -25,7 +25,15 @@ import {
 export default function VoterDashboard() {
   const { voter, refreshVoterStatus } = useAuth();
   const { wallet } = useOutletContext();
-  const { election, candidates, loading } = wallet;
+  const {
+    election,
+    candidates,
+    loading,
+    elections,
+    selectedElectionId,
+    selectElection,
+    electionsLoading,
+  } = wallet;
 
   // Refresh voter status from backend on mount
   useEffect(() => {
@@ -65,20 +73,81 @@ export default function VoterDashboard() {
   return (
     <div className="space-y-8">
       {/* Header */}
+      {/* Election Selector */}
+      <div className="card rounded-2xl p-5">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+              Select Election
+            </h2>
+
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+              Choose the election you want to participate in.
+            </p>
+          </div>
+
+          <select
+            value={selectedElectionId || ""}
+            onChange={(event) => {
+              selectElection(event.target.value);
+            }}
+            disabled={electionsLoading}
+            className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-900 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 dark:border-slate-700 dark:bg-slate-900 dark:text-white sm:w-80"
+          >
+            {electionsLoading ? (
+              <option value="">Loading elections...</option>
+            ) : elections.length === 0 ? (
+              <option value="">No elections available</option>
+            ) : (
+              elections.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.name}
+                </option>
+              ))
+            )}
+          </select>
+        </div>
+
+        {wallet.selectedElection && (
+          <div className="mt-4 rounded-xl bg-slate-50 p-4 dark:bg-slate-800/50">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+              Currently Selected
+            </p>
+
+            <p className="mt-1 font-bold text-slate-900 dark:text-white">
+              {wallet.selectedElection.name}
+            </p>
+
+            <p className="mt-1 break-all font-mono text-xs text-slate-500 dark:text-slate-400">
+              {wallet.contractAddress}
+            </p>
+          </div>
+        )}
+      </div>
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
           <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">
             Welcome, {voter?.name || "Voter"}!
           </h1>
+
+          {/*
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Voter ID: <span className="font-mono font-semibold text-slate-700 dark:text-slate-300">{voter?.voterIdNumber}</span>
+            Voter ID:{" "}
+            <span className="font-mono font-semibold text-slate-700 dark:text-slate-300">
+              {voter?.voterIdNumber}
+            </span>
           </p>
+          */}
         </div>
         <div className="flex items-center gap-2">
           {verified ? (
-            <Badge tone="success"><FaCheckCircle className="mr-1 inline" /> Verified</Badge>
+            <Badge tone="success">
+              <FaCheckCircle className="mr-1 inline" /> Verified
+            </Badge>
           ) : (
-            <Badge tone="warning"><FaTimesCircle className="mr-1 inline" /> Not Verified</Badge>
+            <Badge tone="warning">
+              <FaTimesCircle className="mr-1 inline" /> Not Verified
+            </Badge>
           )}
         </div>
       </div>
@@ -90,7 +159,12 @@ export default function VoterDashboard() {
           label="Election State"
           value={loading ? "..." : election?.stateLabel || "—"}
         />
-        <StatCard icon={FaUsers} label="Candidates" value={formatNumber(candidates.length)} tone="violet" />
+        <StatCard
+          icon={FaUsers}
+          label="Candidates"
+          value={formatNumber(candidates.length)}
+          tone="violet"
+        />
         <StatCard
           icon={FaVoteYea}
           label="Votes Cast"
@@ -109,7 +183,9 @@ export default function VoterDashboard() {
         {/* Progress steps */}
         <div className="lg:col-span-2">
           <div className="card card-hover rounded-2xl p-6">
-            <h2 className="text-base font-bold text-slate-900 dark:text-white">Your Voting Journey</h2>
+            <h2 className="text-base font-bold text-slate-900 dark:text-white">
+              Your Voting Journey
+            </h2>
             <div className="mt-6 space-y-0">
               {steps.map((s, i) => (
                 <div key={s.title} className="flex gap-4">
@@ -126,12 +202,18 @@ export default function VoterDashboard() {
                       {s.done ? <FaCheckCircle className="h-5 w-5" /> : i + 1}
                     </span>
                     {i < steps.length - 1 && (
-                      <div className={`w-0.5 flex-1 ${s.done ? "bg-emerald-400" : "bg-slate-200 dark:bg-midnight-850"}`} />
+                      <div
+                        className={`w-0.5 flex-1 ${s.done ? "bg-emerald-400" : "bg-slate-200 dark:bg-midnight-850"}`}
+                      />
                     )}
                   </div>
                   <div className={`pb-8 ${s.done ? "" : "opacity-90"}`}>
-                    <p className="font-bold text-slate-900 dark:text-white">{s.title}</p>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">{s.desc}</p>
+                    <p className="font-bold text-slate-900 dark:text-white">
+                      {s.title}
+                    </p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                      {s.desc}
+                    </p>
                     {s.current && (
                       <div className="mt-2">
                         {s.title === "Verify OTP" && (
@@ -142,8 +224,13 @@ export default function VoterDashboard() {
                           </Link>
                         )}
                         {s.title === "Connect Wallet" && (
-                          <Button size="sm" onClick={() => wallet.connect()} loading={wallet.connecting}>
-                            <FaWallet className="h-3.5 w-3.5" /> Connect MetaMask
+                          <Button
+                            size="sm"
+                            onClick={() => wallet.connect()}
+                            loading={wallet.connecting}
+                          >
+                            <FaWallet className="h-3.5 w-3.5" /> Connect
+                            MetaMask
                           </Button>
                         )}
                         {s.title === "Cast Vote" && (
@@ -180,7 +267,12 @@ export default function VoterDashboard() {
                 <Button
                   variant="primary"
                   className="w-full"
-                  disabled={!verified || !wallet.account || wallet.hasVoted || !election?.isActive}
+                  disabled={
+                    !verified ||
+                    !wallet.account ||
+                    wallet.hasVoted ||
+                    !election?.isActive
+                  }
                 >
                   Cast My Vote <FaArrowRight className="h-3.5 w-3.5" />
                 </Button>

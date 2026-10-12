@@ -13,9 +13,10 @@ export const isValidEmail = (email) =>
 /** Validate a 6-digit OTP. */
 export const isValidOTP = (otp) => /^\d{6}$/.test(otp || "");
 
-/** Validate voter id (alphanumeric, 6-20 chars). */
+/** Validate voter id (alphanumeric, 6-20 chars). */ /** Validate voter id (minimum 8 chars, at least one letter and one number). */
+
 export const isValidVoterId = (voterId) =>
-  /^[a-zA-Z0-9-]{4,20}$/.test(voterId || "");
+  /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,20}$/.test(voterId || "");
 
 /** Validate phone number (10-15 digits, optional + prefix). */
 export const isValidPhone = (phone) =>

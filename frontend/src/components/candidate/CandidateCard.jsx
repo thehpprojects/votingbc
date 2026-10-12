@@ -30,7 +30,9 @@ export default function CandidateCard({
           ? "border-brand-500 ring-4 ring-brand-500/25 shadow-glow dark:border-brand-400"
           : "border-slate-200/80 hover:border-brand-300/60 dark:border-slate-800 dark:hover:border-brand-500/40"
       } ${variant === "select" ? "cursor-pointer" : ""}`}
-      onClick={variant === "select" && !disabled ? () => onSelect?.(id) : undefined}
+      onClick={
+        variant === "select" && !disabled ? () => onSelect?.(id) : undefined
+      }
       role={variant === "select" ? "button" : undefined}
     >
       {/* Selected glow backdrop */}
@@ -39,7 +41,7 @@ export default function CandidateCard({
       )}
 
       {isLeader && (
-        <div className="absolute -top-3 left-4 z-10">
+        <div className="absolute top-2 left-4 z-10">
           <Badge tone="success">
             <FaCheckCircle className="mr-1 inline" /> Leading
           </Badge>
@@ -77,7 +79,8 @@ export default function CandidateCard({
           onClick={(e) => e.stopPropagation()}
           title="Open candidate metadata on IPFS"
         >
-          <FaLink className="h-3 w-3" /> View metadata ({ipfsCid.slice(0, 10)}...)
+          <FaLink className="h-3 w-3" /> View metadata ({ipfsCid.slice(0, 10)}
+          ...)
         </a>
       )}
 

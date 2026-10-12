@@ -19,12 +19,12 @@ const voterSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-
     email: {
       type: String,
+      required: true,
+      unique: true,
       trim: true,
       lowercase: true,
-      default: "",
     },
 
     phone: {
@@ -55,11 +55,9 @@ const voterSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
-
 const Voter = mongoose.model("Voter", voterSchema);
-
 
 module.exports = Voter;

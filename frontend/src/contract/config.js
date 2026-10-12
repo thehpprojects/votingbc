@@ -65,3 +65,4 @@ export const STATE_LABELS = {
   Active: "Active",
   Ended: "Ended",
 };
+export const FACTORY_ADDRESS = import.meta.env.VITE_FACTORY_ADDRESS;

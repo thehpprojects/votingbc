@@ -1,125 +1,392 @@
 // ======================================
-// VoteChain Election Results (shared: public / admin / voter)
+// VoteChain Election Results
+// Shared: Public / Admin / Voter
 // ======================================
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useContractData } from "../hooks/useContractData";
 import { formatNumber, formatTimestamp } from "../utils/format";
+
 import CandidateCard from "../components/candidate/CandidateCard";
 import Badge from "../components/common/Badge";
 import EmptyState from "../components/common/EmptyState";
 import Spinner from "../components/common/Spinner";
 import Button from "../components/common/Button";
+
 import {
   FaFlagCheckered,
   FaVoteYea,
   FaUsers,
   FaTrophy,
   FaSync,
+  FaChartBar,
+  FaChartPie,
+  FaClock,
 } from "react-icons/fa";
 
-/**
- * Displays live on-chain results: per-candidate vote bars, total votes,
- * and the winning candidate when a clear leader exists.
- */
-export default function ResultsPage({ compact = false }) {
-  const [refreshKey, setRefreshKey] = useState(0);
-  const { election, candidates, results, loading } = useContractData(refreshKey);
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  ArcElement,
+  Tooltip,
+  Legend,
+} from "chart.js";
 
-  // Auto-refresh every 15 seconds while the election is active
+import { Bar, Doughnut } from "react-chartjs-2";
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  ArcElement,
+  Tooltip,
+  Legend,
+);
+
+export default function ResultsPage({ compact = false, wallet = null }) {
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const contractData = useContractData(refreshKey);
+
+  const election = wallet ? wallet.election : contractData.election;
+
+  const candidates = wallet ? wallet.candidates : contractData.candidates;
+
+  const results = wallet ? wallet.results : contractData.results;
+
+  const loading = wallet ? wallet.loading : contractData.loading;
+  // ==========================================
+  // Auto refresh while election is active
+  // ==========================================
+
   useEffect(() => {
     if (!election?.isActive) return;
-    const t = setInterval(() => setRefreshKey((k) => k + 1), 15000);
-    return () => clearInterval(t);
+
+    const timer = setInterval(() => {
+      setRefreshKey((key) => key + 1);
+    }, 15000);
+
+    return () => clearInterval(timer);
   }, [election?.isActive]);
 
+  // ==========================================
+  // Basic data
+  // ==========================================
+
   const totalVotes = results?.totalVotesCast ?? 0;
-  const leader =
-    results?.hasClearLeader
-      ? candidates.find((c) => Number(c.id) === results.leadingCandidateId)
-      : null;
+
+  const leader = results?.hasClearLeader
+    ? candidates.find(
+        (candidate) =>
+          Number(candidate.id) === Number(results.leadingCandidateId),
+      )
+    : null;
+
+  // ==========================================
+  // Chart data
+  // ==========================================
+
+  const chartLabels = useMemo(
+    () => candidates.map((candidate) => candidate.name),
+    [candidates],
+  );
+
+  const voteValues = useMemo(
+    () => candidates.map((candidate) => Number(candidate.voteCount || 0)),
+    [candidates],
+  );
+
+  // ==========================================
+  // Bar chart
+  // ==========================================
+
+  const barChartData = useMemo(
+    () => ({
+      labels: chartLabels,
+      datasets: [
+        {
+          label: "Votes",
+          data: voteValues,
+          borderRadius: 10,
+          borderSkipped: false,
+          maxBarThickness: 55,
+        },
+      ],
+    }),
+    [chartLabels, voteValues],
+  );
+
+  const barChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+
+    plugins: {
+      legend: {
+        display: false,
+      },
+
+      tooltip: {
+        callbacks: {
+          label: (context) =>
+            ` ${context.raw} vote${context.raw === 1 ? "" : "s"}`,
+        },
+      },
+    },
+
+    scales: {
+      x: {
+        grid: {
+          display: false,
+        },
+
+        ticks: {
+          maxRotation: 0,
+          minRotation: 0,
+        },
+      },
+
+      y: {
+        beginAtZero: true,
+
+        ticks: {
+          precision: 0,
+        },
+
+        grid: {
+          color: "rgba(148, 163, 184, 0.15)",
+        },
+      },
+    },
+  };
+
+  // ==========================================
+  // Doughnut chart
+  // ==========================================
+
+  const doughnutChartData = useMemo(
+    () => ({
+      labels: chartLabels,
+      datasets: [
+        {
+          label: "Votes",
+          data: voteValues,
+          borderWidth: 3,
+          hoverOffset: 8,
+        },
+      ],
+    }),
+    [chartLabels, voteValues],
+  );
+
+  const doughnutChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+
+    cutout: "68%",
+
+    plugins: {
+      legend: {
+        position: "bottom",
+        labels: {
+          padding: 18,
+          usePointStyle: true,
+        },
+      },
+
+      tooltip: {
+        callbacks: {
+          label: (context) => {
+            const value = Number(context.raw || 0);
+
+            const percentage =
+              totalVotes > 0 ? ((value / totalVotes) * 100).toFixed(1) : "0.0";
+
+            return ` ${value} votes (${percentage}%)`;
+          },
+        },
+      },
+    },
+  };
+
+  // ==========================================
+  // Participation
+  // ==========================================
 
   const participationPercent =
-    results && results.totalVotesCast > 0 ? Math.min(100, results.totalVotesCast * 100 / Math.max(1, 100)) : 0;
+    totalVotes > 0 ? Math.min(100, (totalVotes * 100) / 100) : 0;
 
   return (
     <div className="space-y-8">
-      {/* Header */}
+      {/* ======================================
+          HEADER
+      ====================================== */}
+
       {!compact && (
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <div>
-            <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">Election Results</h1>
-            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-              Live results straight from the blockchain — fully transparent and
-              verifiable on PolygonScan.
-            </p>
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-100 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400">
+                <FaChartBar />
+              </div>
+
+              <div>
+                <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">
+                  Election Results
+                </h1>
+
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                  Transparent results powered directly by the blockchain.
+                </p>
+              </div>
+            </div>
           </div>
-          <Button variant="secondary" size="sm" onClick={() => setRefreshKey((k) => k + 1)}>
-            <FaSync className="h-3.5 w-3.5" /> Refresh
-          </Button>
+
+          <div className="flex items-center gap-3">
+            <Badge tone={election?.isActive ? "success" : "default"}>
+              {election?.isActive ? "● Live" : "Final"}
+            </Badge>
+
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setRefreshKey((key) => key + 1)}
+            >
+              <FaSync className="h-3.5 w-3.5" />
+              Refresh
+            </Button>
+          </div>
         </div>
       )}
 
-      {/* Summary */}
+      {/* ======================================
+          SUMMARY CARDS
+      ====================================== */}
+
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {/* Election */}
         <div className="card rounded-2xl p-5">
-          <p className="text-sm text-slate-500 dark:text-slate-400">Election State</p>
-          <p className="mt-1 text-2xl font-bold text-slate-900 dark:text-white">
-            {election?.stateLabel || "—"}
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                Election State
+              </p>
+
+              <p className="mt-2 text-xl font-bold text-slate-900 dark:text-white">
+                {election?.stateLabel || "—"}
+              </p>
+            </div>
+
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800">
+              <FaFlagCheckered className="text-slate-500" />
+            </div>
+          </div>
         </div>
+
+        {/* Candidates */}
         <div className="card rounded-2xl p-5">
-          <p className="text-sm text-slate-500 dark:text-slate-400">Candidates</p>
-          <p className="mt-1 text-2xl font-bold text-slate-900 dark:text-white">
-            {formatNumber(candidates.length)}
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                Candidates
+              </p>
+
+              <p className="mt-2 text-2xl font-bold text-slate-900 dark:text-white">
+                {formatNumber(candidates.length)}
+              </p>
+            </div>
+
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-100 dark:bg-blue-500/10">
+              <FaUsers className="text-blue-600 dark:text-blue-400" />
+            </div>
+          </div>
         </div>
+
+        {/* Votes */}
         <div className="card rounded-2xl p-5">
-          <p className="text-sm text-slate-500 dark:text-slate-400">Total Votes</p>
-          <p className="mt-1 text-2xl font-bold text-slate-900 dark:text-white">{formatNumber(totalVotes)}</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                Total Votes
+              </p>
+
+              <p className="mt-2 text-2xl font-bold text-slate-900 dark:text-white">
+                {formatNumber(totalVotes)}
+              </p>
+            </div>
+
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-violet-100 dark:bg-violet-500/10">
+              <FaVoteYea className="text-violet-600 dark:text-violet-400" />
+            </div>
+          </div>
         </div>
-        <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-5 dark:border-emerald-500/30 dark:bg-emerald-500/10">
-          <p className="text-sm font-medium text-emerald-700 dark:text-emerald-400">Leading Candidate</p>
-          <p className="mt-1 truncate text-2xl font-bold text-emerald-900 dark:text-emerald-300">
-            {leader ? (
-              <>
-                <FaTrophy className="mr-1 inline h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-                {leader.name}
-              </>
-            ) : (
-              "—"
-            )}
-          </p>
+
+        {/* Leader */}
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5 dark:border-amber-500/30 dark:bg-amber-500/10">
+          <div className="flex items-center justify-between">
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-amber-700 dark:text-amber-400">
+                Leading Candidate
+              </p>
+
+              <p className="mt-2 truncate text-xl font-bold text-amber-900 dark:text-amber-300">
+                {leader?.name || "No leader"}
+              </p>
+            </div>
+
+            <FaTrophy className="h-7 w-7 shrink-0 text-amber-500" />
+          </div>
         </div>
       </div>
 
-      {/* Winner banner */}
+      {/* ======================================
+          WINNER
+      ====================================== */}
+
       {results?.hasClearLeader && leader && (
-        <div className="animate-fade-in flex flex-col items-center gap-3 rounded-2xl bg-gradient-to-r from-amber-400 to-orange-500 p-6 text-white shadow-lg sm:flex-row sm:justify-between">
-          <div className="flex items-center gap-3">
-            <FaTrophy className="h-9 w-9" />
-            <div>
-              <p className="text-xs font-bold uppercase tracking-widest text-amber-100">
-                Current Winner
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-amber-400 via-orange-500 to-red-500 p-6 text-white shadow-xl">
+          <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10" />
+          <div className="absolute -bottom-20 left-1/3 h-52 w-52 rounded-full bg-white/10" />
+
+          <div className="relative flex flex-col items-center justify-between gap-5 sm:flex-row">
+            <div className="flex items-center gap-4">
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/20 backdrop-blur">
+                <FaTrophy className="h-8 w-8" />
+              </div>
+
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-amber-100">
+                  Current Leader
+                </p>
+
+                <h2 className="mt-1 text-2xl font-extrabold">{leader.name}</h2>
+              </div>
+            </div>
+
+            <div className="text-center sm:text-right">
+              <p className="text-4xl font-black">
+                {formatNumber(Number(leader.voteCount))}
               </p>
-              <p className="text-xl font-extrabold">{leader.name}</p>
+
+              <p className="text-sm text-amber-100">votes received</p>
             </div>
           </div>
-          <div className="text-center sm:text-right">
-            <p className="text-3xl font-extrabold">{formatNumber(Number(leader.voteCount))}</p>
-            <p className="text-xs text-amber-100">votes</p>
-          </div>
         </div>
       )}
 
+      {/* Tie */}
       {results && !results.hasClearLeader && totalVotes > 0 && (
         <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300">
-          <FaFlagCheckered className="mr-1 inline" /> No clear leader yet — there is
-          a tie or no votes have been cast.
+          <FaFlagCheckered className="mr-2 inline" />
+          No clear leader yet — candidates are tied.
         </div>
       )}
 
-      {/* Candidate results */}
+      {/* ======================================
+          CHARTS
+      ====================================== */}
+
       {loading ? (
         <Spinner size="lg" />
       ) : candidates.length === 0 ? (
@@ -129,64 +396,184 @@ export default function ResultsPage({ compact = false }) {
           message="Results will appear here once the admin registers candidates."
         />
       ) : (
-        <div>
-          <div className="mb-4 flex items-center gap-2">
-            <h2 className="text-lg font-bold text-slate-900 dark:text-white">Vote Breakdown</h2>
-            <Badge tone={election?.isActive ? "success" : "default"}>
-              {election?.isActive ? "Live" : "Final"}
-            </Badge>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {candidates.map((c) => (
-              <CandidateCard
-                key={c.id.toString()}
-                candidate={c}
-                variant="results"
-                votesPercent={totalVotes ? (Number(c.voteCount) / totalVotes) * 100 : 0}
-                isLeader={results?.hasClearLeader && Number(c.id) === results.leadingCandidateId}
-              />
-            ))}
-          </div>
+        <>
+          {/* Chart section */}
 
-          {!compact && (
-            <div className="card mt-6 grid gap-4 rounded-2xl p-6 text-sm sm:grid-cols-2">
-              <div>
-                <p className="text-xs uppercase tracking-wide text-slate-400 dark:text-slate-500">Started</p>
-                <p className="mt-1 font-semibold text-slate-800 dark:text-slate-200">
-                  {election?.startedAt ? formatTimestamp(election.startedAt) : "—"}
+          <div className="grid gap-6 lg:grid-cols-5">
+            {/* Bar chart */}
+
+            <div className="card rounded-3xl p-6 lg:col-span-3">
+              <div className="mb-6 flex items-center justify-between">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <FaChartBar className="text-brand-500" />
+
+                    <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+                      Votes by Candidate
+                    </h2>
+                  </div>
+
+                  <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                    Number of votes received by each candidate
+                  </p>
+                </div>
+              </div>
+
+              <div className="h-[320px]">
+                <Bar data={barChartData} options={barChartOptions} />
+              </div>
+            </div>
+
+            {/* Doughnut */}
+
+            <div className="card rounded-3xl p-6 lg:col-span-2">
+              <div className="mb-6">
+                <div className="flex items-center gap-2">
+                  <FaChartPie className="text-violet-500" />
+
+                  <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+                    Vote Distribution
+                  </h2>
+                </div>
+
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                  Percentage share of total votes
                 </p>
               </div>
-              <div>
-                <p className="text-xs uppercase tracking-wide text-slate-400 dark:text-slate-500">Ended</p>
-                <p className="mt-1 font-semibold text-slate-800 dark:text-slate-200">
-                  {election?.endedAt ? formatTimestamp(election.endedAt) : "—"}
-                </p>
-              </div>
-              <div className="sm:col-span-2">
-                <div className="mb-1 flex justify-between text-xs">
-                  <span className="text-slate-400 dark:text-slate-500">Votes vs. registered voters (estimate)</span>
-                  <span className="font-semibold text-slate-600 dark:text-slate-300">
-                    {totalVotes} / 100 ({participationPercent.toFixed(1)}%)
+
+              <div className="relative h-[320px]">
+                <Doughnut
+                  data={doughnutChartData}
+                  options={doughnutChartOptions}
+                />
+
+                {/* Center value */}
+
+                <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center pb-8">
+                  <span className="text-3xl font-black text-slate-900 dark:text-white">
+                    {formatNumber(totalVotes)}
+                  </span>
+
+                  <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                    TOTAL VOTES
                   </span>
                 </div>
-                <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-midnight-850">
+              </div>
+            </div>
+          </div>
+
+          {/* ======================================
+              CANDIDATE CARDS
+          ====================================== */}
+
+          <div>
+            <div className="mb-4 flex items-center gap-2">
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+                Candidate Breakdown
+              </h2>
+
+              <Badge tone={election?.isActive ? "success" : "default"}>
+                {election?.isActive ? "Live" : "Final"}
+              </Badge>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {candidates.map((candidate) => (
+                <CandidateCard
+                  key={candidate.id.toString()}
+                  candidate={candidate}
+                  variant="results"
+                  votesPercent={
+                    totalVotes
+                      ? (Number(candidate.voteCount) / totalVotes) * 100
+                      : 0
+                  }
+                  isLeader={
+                    results?.hasClearLeader &&
+                    Number(candidate.id) === Number(results.leadingCandidateId)
+                  }
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* ======================================
+              ELECTION INFORMATION
+          ====================================== */}
+
+          {!compact && (
+            <div className="card rounded-3xl p-6">
+              <div className="mb-5 flex items-center gap-2">
+                <FaClock className="text-brand-500" />
+
+                <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+                  Election Timeline
+                </h2>
+              </div>
+
+              <div className="grid gap-6 sm:grid-cols-2">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    Started
+                  </p>
+
+                  <p className="mt-2 font-semibold text-slate-800 dark:text-slate-200">
+                    {election?.startedAt
+                      ? formatTimestamp(election.startedAt)
+                      : "Not started"}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    Ended
+                  </p>
+
+                  <p className="mt-2 font-semibold text-slate-800 dark:text-slate-200">
+                    {election?.endedAt
+                      ? formatTimestamp(election.endedAt)
+                      : "Not ended"}
+                  </p>
+                </div>
+              </div>
+
+              {/* Participation */}
+
+              <div className="mt-6">
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="text-sm font-medium text-slate-600 dark:text-slate-300">
+                    Voting activity
+                  </span>
+
+                  <span className="text-sm font-bold text-slate-700 dark:text-slate-200">
+                    {formatNumber(totalVotes)} votes
+                  </span>
+                </div>
+
+                <div className="h-3 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
                   <div
                     className="h-full rounded-full bg-gradient-to-r from-brand-500 to-violet-500 transition-all duration-700"
-                    style={{ width: `${participationPercent}%` }}
+                    style={{
+                      width: `${participationPercent}%`,
+                    }}
                   />
                 </div>
               </div>
             </div>
           )}
-        </div>
+        </>
       )}
 
+      {/* ======================================
+          FOOTER
+      ====================================== */}
+
       {!compact && (
-        <p className="flex items-center gap-2 text-xs text-slate-400 dark:text-slate-500">
+        <div className="flex items-center gap-2 text-xs text-slate-400 dark:text-slate-500">
           <FaVoteYea className="text-brand-500" />
-          Results are read directly from the VotingSystem contract on Polygon Amoy
-          testnet. Vote counts can never be modified.
-        </p>
+          Results are read directly from the VotingSystem contract on Polygon
+          Amoy. Vote counts cannot be modified after being recorded.
+        </div>
       )}
     </div>
   );

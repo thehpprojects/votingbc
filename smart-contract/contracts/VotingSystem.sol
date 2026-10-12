@@ -92,7 +92,7 @@ contract VotingSystem is Ownable {
     // Constructor — Requirement 1: the deployer becomes the admin
     // ---------------------------------------------------------------------
 
-    constructor() Ownable(msg.sender) {}
+    constructor(address admin) Ownable(admin) {}
 
     // ---------------------------------------------------------------------
     // Admin functions (Requirement 2 & 4)
