@@ -18,12 +18,32 @@ import Badge from "../components/common/Badge";
 import Logo from "../components/common/Logo";
 
 const stack = [
-  { icon: FaReact, title: "React (Vite)", desc: "Modern component-based UI with Tailwind CSS" },
-  { icon: FaServer, title: "Node.js + Express", desc: "REST API with JWT auth, OTP & MongoDB" },
+  {
+    icon: FaReact,
+    title: "React (Vite)",
+    desc: "Modern component-based UI with Tailwind CSS",
+  },
+  {
+    icon: FaServer,
+    title: "Node.js + Express",
+    desc: "REST API with JWT auth, OTP & MongoDB",
+  },
   { icon: FaDatabase, title: "MongoDB", desc: "Voter registry & OTP storage" },
-  { icon: FaFileContract, title: "Solidity + Hardhat", desc: "VotingSystem smart contract, audited pattern" },
-  { icon: FaLink, title: "Ethers.js", desc: "Seamless wallet & contract interaction" },
-  { icon: FaWallet, title: "MetaMask", desc: "One wallet, one vote — identity on-chain" },
+  {
+    icon: FaFileContract,
+    title: "Solidity + Hardhat",
+    desc: "VotingSystem smart contract, audited pattern",
+  },
+  {
+    icon: FaLink,
+    title: "Ethers.js",
+    desc: "Seamless wallet & contract interaction",
+  },
+  {
+    icon: FaWallet,
+    title: "MetaMask",
+    desc: "One wallet, one vote — identity on-chain",
+  },
 ];
 
 export default function AboutPage() {
@@ -43,9 +63,11 @@ export default function AboutPage() {
         <div className="mt-4 h-1 w-32 rounded-full bg-gradient-to-r from-brand-600 to-violet-600" />
         <p className="mt-6 text-lg leading-relaxed text-slate-600 dark:text-slate-400">
           VoteChain stores every vote on the{" "}
-          <strong className="text-slate-900 dark:text-white">Polygon Amoy testnet</strong>{" "}
-          as immutable smart contract state. The system combines a traditional web
-          backend (registration, OTP identity verification) with blockchain
+          <strong className="text-slate-900 dark:text-white">
+            Polygon Amoy testnet
+          </strong>{" "}
+          as immutable smart contract state. The system combines a traditional
+          web backend (registration, OTP identity verification) with blockchain
           guarantees (tamper-proof vote recording, one-vote-per-wallet).
         </p>
       </div>
@@ -55,7 +77,8 @@ export default function AboutPage() {
         {[
           {
             icon: FaServer,
-            color: "bg-sky-100 text-sky-600 dark:bg-sky-500/15 dark:text-sky-400",
+            color:
+              "bg-sky-100 text-sky-600 dark:bg-sky-500/15 dark:text-sky-400",
             title: "1. Backend (Off-chain)",
             items: [
               "Voter registration with unique Voter ID",
@@ -66,7 +89,8 @@ export default function AboutPage() {
           },
           {
             icon: FaFileContract,
-            color: "bg-brand-100 text-brand-600 dark:bg-brand-500/15 dark:text-brand-400",
+            color:
+              "bg-brand-100 text-brand-600 dark:bg-brand-500/15 dark:text-brand-400",
             title: "2. Smart Contract (On-chain)",
             items: [
               "Candidates & votes stored in immutable contract state",
@@ -77,7 +101,8 @@ export default function AboutPage() {
           },
           {
             icon: FaReact,
-            color: "bg-emerald-100 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400",
+            color:
+              "bg-emerald-100 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400",
             title: "3. Frontend (dApp)",
             items: [
               "React + Vite + Tailwind CSS responsive UI",
@@ -88,10 +113,14 @@ export default function AboutPage() {
           },
         ].map((card) => (
           <div key={card.title} className="card card-hover rounded-2xl p-7">
-            <div className={`mb-4 flex h-12 w-12 items-center justify-center rounded-xl ${card.color}`}>
+            <div
+              className={`mb-4 flex h-12 w-12 items-center justify-center rounded-xl ${card.color}`}
+            >
               <card.icon className="h-6 w-6" />
             </div>
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white">{card.title}</h3>
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+              {card.title}
+            </h3>
             <ul className="mt-3 space-y-2 text-sm text-slate-600 dark:text-slate-400">
               {card.items.map((li) => (
                 <li key={li} className="flex gap-2">
@@ -110,17 +139,25 @@ export default function AboutPage() {
         <h2 className="text-xl font-bold text-white">Deployed Contract</h2>
         <div className="mt-5 grid gap-4 text-sm sm:grid-cols-3">
           <div>
-            <p className="text-xs uppercase tracking-wide text-slate-500">Network</p>
+            <p className="text-xs uppercase tracking-wide text-slate-500">
+              Network
+            </p>
             <p className="mt-1 font-mono font-semibold text-brand-300">
               Polygon Amoy (Chain {CHAIN_ID})
             </p>
           </div>
           <div>
-            <p className="text-xs uppercase tracking-wide text-slate-500">RPC</p>
-            <p className="mt-1 truncate font-mono font-semibold text-slate-300">{RPC_URL}</p>
+            <p className="text-xs uppercase tracking-wide text-slate-500">
+              RPC
+            </p>
+            <p className="mt-1 truncate font-mono font-semibold text-slate-300">
+              {RPC_URL}
+            </p>
           </div>
           <div>
-            <p className="text-xs uppercase tracking-wide text-slate-500">Contract</p>
+            <p className="text-xs uppercase tracking-wide text-slate-500">
+              Contract
+            </p>
             <a
               href={`https://amoy.polygonscan.com/address/${CONTRACT_ADDRESS}`}
               target="_blank"
@@ -136,7 +173,9 @@ export default function AboutPage() {
 
       {/* Stack */}
       <div className="mt-14">
-        <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white">Technology Stack</h2>
+        <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white">
+          Technology Stack
+        </h2>
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {stack.map((t) => (
             <div
@@ -147,8 +186,12 @@ export default function AboutPage() {
                 <t.icon className="h-5 w-5" />
               </div>
               <div>
-                <h3 className="font-bold text-slate-900 dark:text-white">{t.title}</h3>
-                <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">{t.desc}</p>
+                <h3 className="font-bold text-slate-900 dark:text-white">
+                  {t.title}
+                </h3>
+                <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">
+                  {t.desc}
+                </p>
               </div>
             </div>
           ))}
@@ -167,7 +210,8 @@ export default function AboutPage() {
           to="/register"
           className="inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 text-sm font-bold text-brand-700 shadow-lg transition hover:bg-brand-50"
         >
-          Register Now <FaArrowRight className="h-4 w-4" />
+          Register
+          <FaArrowRight className="h-4 w-4" />
         </Link>
       </div>
     </div>
